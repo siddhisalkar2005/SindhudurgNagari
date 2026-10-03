@@ -1,5 +1,9 @@
 import 'dart:ui';
+
 import 'package:flutter/material.dart';
+import 'package:firebase_auth/firebase_auth.dart';
+
+import 'home_page.dart';
 
 class LoginPage extends StatefulWidget {
   final int language;
@@ -20,6 +24,7 @@ class _LoginPageState extends State<LoginPage> {
   final GlobalKey<FormState> _formKey = GlobalKey<FormState>();
 
   bool passwordVisible = false;
+  bool isLoading = false;
 
   // ============================================================
   // LANGUAGE
@@ -44,21 +49,15 @@ class _LoginPageState extends State<LoginPage> {
   }
 
   String get emailLabel {
-    if (widget.language == 0) return "ईमेल किंवा मोबाईल नंबर";
-    if (widget.language == 1) return "ईमेल या मोबाइल नंबर";
-    return "Email or Mobile Number";
+    if (widget.language == 0) return "ईमेल";
+    if (widget.language == 1) return "ईमेल";
+    return "Email";
   }
 
   String get emailHint {
-    if (widget.language == 0) {
-      return "ईमेल किंवा मोबाईल नंबर टाका";
-    }
-
-    if (widget.language == 1) {
-      return "अपना ईमेल या मोबाइल नंबर दर्ज करें";
-    }
-
-    return "Enter email or mobile number";
+    if (widget.language == 0) return "तुमचा ईमेल टाका";
+    if (widget.language == 1) return "अपना ईमेल दर्ज करें";
+    return "Enter your email";
   }
 
   String get passwordLabel {
@@ -92,26 +91,20 @@ class _LoginPageState extends State<LoginPage> {
   }
 
   String get emailError {
-    if (widget.language == 0) {
-      return "कृपया ईमेल किंवा मोबाईल नंबर टाका";
-    }
+    if (widget.language == 0) return "कृपया ईमेल टाका";
+    if (widget.language == 1) return "कृपया ईमेल दर्ज करें";
+    return "Please enter your email";
+  }
 
-    if (widget.language == 1) {
-      return "कृपया ईमेल या मोबाइल नंबर दर्ज करें";
-    }
-
-    return "Please enter email or mobile number";
+  String get invalidEmailError {
+    if (widget.language == 0) return "कृपया योग्य ईमेल टाका";
+    if (widget.language == 1) return "कृपया सही ईमेल दर्ज करें";
+    return "Please enter a valid email";
   }
 
   String get passwordError {
-    if (widget.language == 0) {
-      return "कृपया पासवर्ड टाका";
-    }
-
-    if (widget.language == 1) {
-      return "कृपया पासवर्ड दर्ज करें";
-    }
-
+    if (widget.language == 0) return "कृपया पासवर्ड टाका";
+    if (widget.language == 1) return "कृपया पासवर्ड दर्ज करें";
     return "Please enter your password";
   }
 
@@ -128,11 +121,31 @@ class _LoginPageState extends State<LoginPage> {
   }
 
   // ============================================================
-  // LOGIN
+  // FIREBASE LOGIN
   // ============================================================
 
-  void loginUser() {
-    if (_formKey.currentState!.validate()) {
+  Future<void> loginUser() async {
+    if (!_formKey.currentState!.validate()) {
+      return;
+    }
+
+    setState(() {
+      isLoading = true;
+    });
+
+    try {
+      await FirebaseAuth.instance.signInWithEmailAndPassword(
+        email: emailController.text.trim(),
+        password: passwordController.text.trim(),
+      );
+
+      if (!mounted) return;
+
+      setState(() {
+        isLoading = false;
+      });
+
+      // SUCCESS MESSAGE
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text(
@@ -145,6 +158,86 @@ class _LoginPageState extends State<LoginPage> {
           backgroundColor: Colors.green,
         ),
       );
+
+      // थोड़ा delay, मग HomePage
+      await Future.delayed(
+        const Duration(milliseconds: 700),
+      );
+
+      if (!mounted) return;
+
+      // HOME PAGE वर जा
+      Navigator.pushReplacement(
+        context,
+        MaterialPageRoute(
+          builder: (context) => HomePage(
+            language: widget.language,
+          ),
+        ),
+      );
+    } on FirebaseAuthException catch (e) {
+      if (!mounted) return;
+
+      setState(() {
+        isLoading = false;
+      });
+
+      String message;
+
+      if (e.code == 'user-not-found') {
+        message = widget.language == 0
+            ? "या ईमेलसाठी खाते सापडले नाही"
+            : widget.language == 1
+                ? "इस ईमेल के लिए कोई खाता नहीं मिला"
+                : "No account found with this email";
+      } else if (e.code == 'wrong-password' ||
+          e.code == 'invalid-credential') {
+        message = widget.language == 0
+            ? "ईमेल किंवा पासवर्ड चुकीचा आहे"
+            : widget.language == 1
+                ? "ईमेल या पासवर्ड गलत है"
+                : "Invalid email or password";
+      } else if (e.code == 'invalid-email') {
+        message = invalidEmailError;
+      } else if (e.code == 'user-disabled') {
+        message = widget.language == 0
+            ? "हे खाते बंद केले आहे"
+            : widget.language == 1
+                ? "यह खाता बंद कर दिया गया है"
+                : "This account has been disabled";
+      } else {
+        message = widget.language == 0
+            ? "लॉगिन करण्यात समस्या आली"
+            : widget.language == 1
+                ? "लॉगिन में समस्या हुई"
+                : "Login failed";
+      }
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(message),
+          backgroundColor: Colors.red,
+        ),
+      );
+    } catch (e) {
+      if (!mounted) return;
+
+      setState(() {
+        isLoading = false;
+      });
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(
+            widget.language == 0
+                ? "काहीतरी चूक झाली"
+                : widget.language == 1
+                    ? "कुछ गलत हो गया"
+                    : "Something went wrong",
+          ),
+          backgroundColor: Colors.red,
+        ),
+      );
     }
   }
 
@@ -152,7 +245,7 @@ class _LoginPageState extends State<LoginPage> {
   // FORGOT PASSWORD
   // ============================================================
 
-  void forgotPassword() {
+  Future<void> forgotPassword() async {
     final email = TextEditingController();
 
     final String title = widget.language == 0
@@ -177,11 +270,11 @@ class _LoginPageState extends State<LoginPage> {
         ? "पाठवा"
         : widget.language == 1
             ? "भेजें"
-            : "Submit";
+            : "Send";
 
-    showDialog(
+    await showDialog(
       context: context,
-      builder: (context) {
+      builder: (dialogContext) {
         return AlertDialog(
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(25),
@@ -212,24 +305,73 @@ class _LoginPageState extends State<LoginPage> {
           ),
           actions: [
             TextButton(
-              onPressed: () => Navigator.pop(context),
+              onPressed: () {
+                email.dispose();
+                Navigator.pop(dialogContext);
+              },
               child: Text(cancel),
             ),
             ElevatedButton(
-              onPressed: () {
-                Navigator.pop(context);
+              onPressed: () async {
+                if (email.text.trim().isEmpty) {
+                  return;
+                }
 
-                ScaffoldMessenger.of(context).showSnackBar(
-                  SnackBar(
-                    content: Text(
-                      widget.language == 0
-                          ? "पासवर्ड रीसेट विनंती पाठवली"
-                          : widget.language == 1
-                              ? "पासवर्ड रीसेट अनुरोध भेजा गया"
-                              : "Password reset request submitted",
+                try {
+                  await FirebaseAuth.instance
+                      .sendPasswordResetEmail(
+                    email: email.text.trim(),
+                  );
+
+                  if (!mounted) return;
+
+                  email.dispose();
+                  Navigator.pop(dialogContext);
+
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(
+                      content: Text(
+                        widget.language == 0
+                            ? "पासवर्ड रीसेट ईमेल पाठवला"
+                            : widget.language == 1
+                                ? "पासवर्ड रीसेट ईमेल भेजा गया"
+                                : "Password reset email sent",
+                      ),
+                      backgroundColor: Colors.green,
                     ),
-                  ),
-                );
+                  );
+                } on FirebaseAuthException catch (e) {
+                  email.dispose();
+
+                  if (Navigator.canPop(dialogContext)) {
+                    Navigator.pop(dialogContext);
+                  }
+
+                  if (!mounted) return;
+
+                  String message;
+
+                  if (e.code == 'user-not-found') {
+                    message = widget.language == 0
+                        ? "हे ईमेल खाते सापडले नाही"
+                        : widget.language == 1
+                            ? "यह ईमेल खाता नहीं मिला"
+                            : "No account found with this email";
+                  } else {
+                    message = widget.language == 0
+                        ? "पासवर्ड रीसेट करता आले नाही"
+                        : widget.language == 1
+                            ? "पासवर्ड रीसेट नहीं हो सका"
+                            : "Could not reset password";
+                  }
+
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(
+                      content: Text(message),
+                      backgroundColor: Colors.red,
+                    ),
+                  );
+                }
               },
               style: ElevatedButton.styleFrom(
                 backgroundColor: const Color(0xFF159ED2),
@@ -261,6 +403,10 @@ class _LoginPageState extends State<LoginPage> {
     );
   }
 
+  // ============================================================
+  // DISPOSE
+  // ============================================================
+
   @override
   void dispose() {
     emailController.dispose();
@@ -278,7 +424,6 @@ class _LoginPageState extends State<LoginPage> {
       body: Stack(
         fit: StackFit.expand,
         children: [
-
           // ======================================================
           // BACKGROUND
           // ======================================================
@@ -372,8 +517,7 @@ class _LoginPageState extends State<LoginPage> {
                       ),
                       decoration: BoxDecoration(
                         color: Colors.white.withOpacity(0.94),
-                        borderRadius:
-                            BorderRadius.circular(34),
+                        borderRadius: BorderRadius.circular(34),
                         border: Border.all(
                           color: Colors.white.withOpacity(0.8),
                           width: 1.5,
@@ -390,17 +534,15 @@ class _LoginPageState extends State<LoginPage> {
                         key: _formKey,
                         child: Column(
                           children: [
-
-                            // ==========================================
-                            // BRAND LOGO
-                            // ==========================================
+                            // ==================================================
+                            // LOGO
+                            // ==================================================
 
                             Container(
                               width: 88,
                               height: 88,
                               decoration: BoxDecoration(
-                                gradient:
-                                    const LinearGradient(
+                                gradient: const LinearGradient(
                                   begin: Alignment.topLeft,
                                   end: Alignment.bottomRight,
                                   colors: [
@@ -439,9 +581,9 @@ class _LoginPageState extends State<LoginPage> {
 
                             const SizedBox(height: 14),
 
-                            // ==========================================
+                            // ==================================================
                             // APP NAME
-                            // ==========================================
+                            // ==================================================
 
                             RichText(
                               text: const TextSpan(
@@ -451,8 +593,7 @@ class _LoginPageState extends State<LoginPage> {
                                     style: TextStyle(
                                       color: Color(0xFF124A78),
                                       fontSize: 26,
-                                      fontWeight:
-                                          FontWeight.w900,
+                                      fontWeight: FontWeight.w900,
                                     ),
                                   ),
                                   TextSpan(
@@ -460,8 +601,7 @@ class _LoginPageState extends State<LoginPage> {
                                     style: TextStyle(
                                       color: Color(0xFF12A8CF),
                                       fontSize: 26,
-                                      fontWeight:
-                                          FontWeight.w900,
+                                      fontWeight: FontWeight.w900,
                                     ),
                                   ),
                                 ],
@@ -486,9 +626,9 @@ class _LoginPageState extends State<LoginPage> {
 
                             const SizedBox(height: 25),
 
-                            // ==========================================
-                            // WELCOME ICON
-                            // ==========================================
+                            // ==================================================
+                            // PERSON ICON
+                            // ==================================================
 
                             Container(
                               width: 68,
@@ -509,9 +649,9 @@ class _LoginPageState extends State<LoginPage> {
 
                             const SizedBox(height: 15),
 
-                            // ==========================================
-                            // WELCOME TEXT
-                            // ==========================================
+                            // ==================================================
+                            // WELCOME
+                            // ==================================================
 
                             Text(
                               welcome,
@@ -537,9 +677,9 @@ class _LoginPageState extends State<LoginPage> {
 
                             const SizedBox(height: 28),
 
-                            // ==========================================
+                            // ==================================================
                             // EMAIL LABEL
-                            // ==========================================
+                            // ==================================================
 
                             Align(
                               alignment: Alignment.centerLeft,
@@ -555,9 +695,9 @@ class _LoginPageState extends State<LoginPage> {
 
                             const SizedBox(height: 9),
 
-                            // ==========================================
-                            // EMAIL
-                            // ==========================================
+                            // ==================================================
+                            // EMAIL FIELD
+                            // ==================================================
 
                             TextFormField(
                               controller: emailController,
@@ -568,6 +708,11 @@ class _LoginPageState extends State<LoginPage> {
                                     value.trim().isEmpty) {
                                   return emailError;
                                 }
+
+                                if (!value.contains('@')) {
+                                  return invalidEmailError;
+                                }
+
                                 return null;
                               },
                               decoration: InputDecoration(
@@ -613,9 +758,9 @@ class _LoginPageState extends State<LoginPage> {
 
                             const SizedBox(height: 20),
 
-                            // ==========================================
+                            // ==================================================
                             // PASSWORD LABEL
-                            // ==========================================
+                            // ==================================================
 
                             Align(
                               alignment: Alignment.centerLeft,
@@ -631,9 +776,9 @@ class _LoginPageState extends State<LoginPage> {
 
                             const SizedBox(height: 9),
 
-                            // ==========================================
-                            // PASSWORD
-                            // ==========================================
+                            // ==================================================
+                            // PASSWORD FIELD
+                            // ==================================================
 
                             TextFormField(
                               controller: passwordController,
@@ -665,10 +810,8 @@ class _LoginPageState extends State<LoginPage> {
                                   },
                                   icon: Icon(
                                     passwordVisible
-                                        ? Icons
-                                            .visibility_outlined
-                                        : Icons
-                                            .visibility_off_outlined,
+                                        ? Icons.visibility_outlined
+                                        : Icons.visibility_off_outlined,
                                     color:
                                         const Color(0xFF20A9D3),
                                   ),
@@ -708,9 +851,9 @@ class _LoginPageState extends State<LoginPage> {
                               ),
                             ),
 
-                            // ==========================================
-                            // FORGOT
-                            // ==========================================
+                            // ==================================================
+                            // FORGOT PASSWORD
+                            // ==================================================
 
                             Align(
                               alignment: Alignment.centerRight,
@@ -729,16 +872,15 @@ class _LoginPageState extends State<LoginPage> {
 
                             const SizedBox(height: 8),
 
-                            // ==========================================
+                            // ==================================================
                             // LOGIN BUTTON
-                            // ==========================================
+                            // ==================================================
 
                             Container(
                               width: double.infinity,
                               height: 58,
                               decoration: BoxDecoration(
-                                gradient:
-                                    const LinearGradient(
+                                gradient: const LinearGradient(
                                   begin: Alignment.centerLeft,
                                   end: Alignment.centerRight,
                                   colors: [
@@ -758,9 +900,12 @@ class _LoginPageState extends State<LoginPage> {
                                 ],
                               ),
                               child: ElevatedButton(
-                                onPressed: loginUser,
+                                onPressed:
+                                    isLoading ? null : loginUser,
                                 style: ElevatedButton.styleFrom(
                                   backgroundColor:
+                                      Colors.transparent,
+                                  disabledBackgroundColor:
                                       Colors.transparent,
                                   foregroundColor: Colors.white,
                                   elevation: 0,
@@ -772,34 +917,49 @@ class _LoginPageState extends State<LoginPage> {
                                         BorderRadius.circular(19),
                                   ),
                                 ),
-                                child: Row(
-                                  mainAxisAlignment:
-                                      MainAxisAlignment.center,
-                                  children: [
-                                    Text(
-                                      login,
-                                      style: const TextStyle(
-                                        fontSize: 17,
-                                        fontWeight:
-                                            FontWeight.w800,
+                                child: isLoading
+                                    ? const SizedBox(
+                                        width: 25,
+                                        height: 25,
+                                        child:
+                                            CircularProgressIndicator(
+                                          strokeWidth: 2.5,
+                                          valueColor:
+                                              AlwaysStoppedAnimation<
+                                                  Color>(
+                                            Colors.white,
+                                          ),
+                                        ),
+                                      )
+                                    : Row(
+                                        mainAxisAlignment:
+                                            MainAxisAlignment.center,
+                                        children: [
+                                          Text(
+                                            login,
+                                            style:
+                                                const TextStyle(
+                                              fontSize: 17,
+                                              fontWeight:
+                                                  FontWeight.w800,
+                                            ),
+                                          ),
+                                          const SizedBox(width: 12),
+                                          const Icon(
+                                            Icons
+                                                .arrow_forward_rounded,
+                                            size: 23,
+                                          ),
+                                        ],
                                       ),
-                                    ),
-                                    const SizedBox(width: 12),
-                                    const Icon(
-                                      Icons
-                                          .arrow_forward_rounded,
-                                      size: 23,
-                                    ),
-                                  ],
-                                ),
                               ),
                             ),
 
                             const SizedBox(height: 23),
 
-                            // ==========================================
+                            // ==================================================
                             // CREATE ACCOUNT
-                            // ==========================================
+                            // ==================================================
 
                             Row(
                               children: [
@@ -816,8 +976,7 @@ class _LoginPageState extends State<LoginPage> {
                                     horizontal: 10,
                                   ),
                                   child: TextButton(
-                                    onPressed:
-                                        createNewAccount,
+                                    onPressed: createNewAccount,
                                     child: Text(
                                       createAccount,
                                       style: const TextStyle(
@@ -842,9 +1001,9 @@ class _LoginPageState extends State<LoginPage> {
 
                             const SizedBox(height: 5),
 
-                            // ==========================================
+                            // ==================================================
                             // FOOTER
-                            // ==========================================
+                            // ==================================================
 
                             Text(
                               widget.language == 0
