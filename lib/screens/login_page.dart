@@ -1,11 +1,14 @@
 import 'dart:ui';
 
-import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:flutter/material.dart';
 
 import 'home_page.dart';
 
 class LoginPage extends StatefulWidget {
+  /// 0 = Marathi
+  /// 1 = Hindi
+  /// 2 = English
   final int language;
 
   const LoginPage({
@@ -18,116 +21,185 @@ class LoginPage extends StatefulWidget {
 }
 
 class _LoginPageState extends State<LoginPage> {
-  final TextEditingController emailController = TextEditingController();
-  final TextEditingController passwordController = TextEditingController();
+  // ============================================================
+  // CONTROLLERS
+  // ============================================================
 
-  final GlobalKey<FormState> _formKey = GlobalKey<FormState>();
+  final TextEditingController emailController =
+      TextEditingController();
+
+  final TextEditingController passwordController =
+      TextEditingController();
+
+  final GlobalKey<FormState> _formKey =
+      GlobalKey<FormState>();
 
   bool passwordVisible = false;
   bool isLoading = false;
 
   // ============================================================
-  // LANGUAGE
+  // LANGUAGE CODE
   // ============================================================
 
-  String get welcome {
-    if (widget.language == 0) return "पुन्हा स्वागत आहे";
-    if (widget.language == 1) return "वापसी पर स्वागत है";
-    return "Welcome Back";
-  }
+  /// Converts LoginPage language integer
+  /// into HomePage language String.
+  ///
+  /// 0 -> mr
+  /// 1 -> hi
+  /// 2 -> en
+  String get languageCode {
+    switch (widget.language) {
+      case 0:
+        return 'mr';
 
-  String get subtitle {
-    if (widget.language == 0) {
-      return "SindhudurgNagri सोबत तुमचा प्रवास सुरू ठेवा";
+      case 1:
+        return 'hi';
+
+      default:
+        return 'en';
     }
-
-    if (widget.language == 1) {
-      return "SindhudurgNagri के साथ अपनी यात्रा जारी रखें";
-    }
-
-    return "Continue your journey with SindhudurgNagri";
-  }
-
-  String get emailLabel {
-    if (widget.language == 0) return "ईमेल";
-    if (widget.language == 1) return "ईमेल";
-    return "Email";
-  }
-
-  String get emailHint {
-    if (widget.language == 0) return "तुमचा ईमेल टाका";
-    if (widget.language == 1) return "अपना ईमेल दर्ज करें";
-    return "Enter your email";
-  }
-
-  String get passwordLabel {
-    if (widget.language == 0) return "पासवर्ड";
-    if (widget.language == 1) return "पासवर्ड";
-    return "Password";
-  }
-
-  String get passwordHint {
-    if (widget.language == 0) return "तुमचा पासवर्ड टाका";
-    if (widget.language == 1) return "अपना पासवर्ड दर्ज करें";
-    return "Enter your password";
-  }
-
-  String get forgot {
-    if (widget.language == 0) return "पासवर्ड विसरलात?";
-    if (widget.language == 1) return "पासवर्ड भूल गए?";
-    return "Forgot Password?";
-  }
-
-  String get login {
-    if (widget.language == 0) return "लॉगिन";
-    if (widget.language == 1) return "लॉगिन";
-    return "Login";
-  }
-
-  String get createAccount {
-    if (widget.language == 0) return "नवीन खाते तयार करा";
-    if (widget.language == 1) return "नया खाता बनाएं";
-    return "Create New Account";
-  }
-
-  String get emailError {
-    if (widget.language == 0) return "कृपया ईमेल टाका";
-    if (widget.language == 1) return "कृपया ईमेल दर्ज करें";
-    return "Please enter your email";
-  }
-
-  String get invalidEmailError {
-    if (widget.language == 0) return "कृपया योग्य ईमेल टाका";
-    if (widget.language == 1) return "कृपया सही ईमेल दर्ज करें";
-    return "Please enter a valid email";
-  }
-
-  String get passwordError {
-    if (widget.language == 0) return "कृपया पासवर्ड टाका";
-    if (widget.language == 1) return "कृपया पासवर्ड दर्ज करें";
-    return "Please enter your password";
-  }
-
-  String get passwordLengthError {
-    if (widget.language == 0) {
-      return "पासवर्ड किमान 6 अक्षरांचा असावा";
-    }
-
-    if (widget.language == 1) {
-      return "पासवर्ड कम से कम 6 अक्षरों का होना चाहिए";
-    }
-
-    return "Password must be at least 6 characters";
   }
 
   // ============================================================
-  // FIREBASE LOGIN
+  // TRANSLATION HELPER
+  // ============================================================
+
+  String tr(
+    String english,
+    String marathi,
+    String hindi,
+  ) {
+    switch (widget.language) {
+      case 0:
+        return marathi;
+
+      case 1:
+        return hindi;
+
+      default:
+        return english;
+    }
+  }
+
+  // ============================================================
+  // TEXTS
+  // ============================================================
+
+  String get welcome => tr(
+        'Welcome Back',
+        'पुन्हा स्वागत आहे',
+        'वापसी पर स्वागत है',
+      );
+
+  String get subtitle => tr(
+        'Continue your journey with SindhudurgNagri',
+        'SindhudurgNagri सोबत तुमचा प्रवास सुरू ठेवा',
+        'SindhudurgNagri के साथ अपनी यात्रा जारी रखें',
+      );
+
+  String get emailLabel => tr(
+        'Email',
+        'ईमेल',
+        'ईमेल',
+      );
+
+  String get emailHint => tr(
+        'Enter your email',
+        'तुमचा ईमेल टाका',
+        'अपना ईमेल दर्ज करें',
+      );
+
+  String get passwordLabel => tr(
+        'Password',
+        'पासवर्ड',
+        'पासवर्ड',
+      );
+
+  String get passwordHint => tr(
+        'Enter your password',
+        'तुमचा पासवर्ड टाका',
+        'अपना पासवर्ड दर्ज करें',
+      );
+
+  String get forgotPasswordText => tr(
+        'Forgot Password?',
+        'पासवर्ड विसरलात?',
+        'पासवर्ड भूल गए?',
+      );
+
+  String get loginText => tr(
+        'Login',
+        'लॉगिन',
+        'लॉगिन',
+      );
+
+  String get createAccountText => tr(
+        'Create New Account',
+        'नवीन खाते तयार करा',
+        'नया खाता बनाएं',
+      );
+
+  String get emailRequired => tr(
+        'Please enter your email',
+        'कृपया ईमेल टाका',
+        'कृपया ईमेल दर्ज करें',
+      );
+
+  String get invalidEmail => tr(
+        'Please enter a valid email',
+        'कृपया योग्य ईमेल टाका',
+        'कृपया सही ईमेल दर्ज करें',
+      );
+
+  String get passwordRequired => tr(
+        'Please enter your password',
+        'कृपया पासवर्ड टाका',
+        'कृपया पासवर्ड दर्ज करें',
+      );
+
+  String get passwordLength => tr(
+        'Password must be at least 6 characters',
+        'पासवर्ड किमान 6 अक्षरांचा असावा',
+        'पासवर्ड कम से कम 6 अक्षरों का होना चाहिए',
+      );
+
+  // ============================================================
+  // SNACKBAR
+  // ============================================================
+
+  void showMessage(
+    String message, {
+    bool success = false,
+  }) {
+    if (!mounted) return;
+
+    ScaffoldMessenger.of(context)
+      ..hideCurrentSnackBar()
+      ..showSnackBar(
+        SnackBar(
+          content: Text(message),
+          backgroundColor:
+              success ? Colors.green : Colors.red,
+          behavior: SnackBarBehavior.floating,
+          margin: const EdgeInsets.all(16),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(12),
+          ),
+        ),
+      );
+  }
+
+  // ============================================================
+  // LOGIN
   // ============================================================
 
   Future<void> loginUser() async {
+    // Validate form
     if (!_formKey.currentState!.validate()) {
       return;
     }
+
+    FocusScope.of(context).unfocus();
 
     setState(() {
       isLoading = true;
@@ -145,33 +217,32 @@ class _LoginPageState extends State<LoginPage> {
         isLoading = false;
       });
 
-      // SUCCESS MESSAGE
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(
-            widget.language == 0
-                ? "लॉगिन यशस्वी झाले"
-                : widget.language == 1
-                    ? "लॉगिन सफल हुआ"
-                    : "Login successful",
-          ),
-          backgroundColor: Colors.green,
+      showMessage(
+        tr(
+          'Login successful',
+          'लॉगिन यशस्वी झाले',
+          'लॉगिन सफल हुआ',
         ),
+        success: true,
       );
 
-      // थोड़ा delay, मग HomePage
       await Future.delayed(
-        const Duration(milliseconds: 700),
+        const Duration(milliseconds: 500),
       );
 
       if (!mounted) return;
 
-      // HOME PAGE वर जा
+      // ========================================================
+      // IMPORTANT:
+      // LoginPage uses int language.
+      // HomePage receives String language.
+      // ========================================================
+
       Navigator.pushReplacement(
         context,
         MaterialPageRoute(
-          builder: (context) => HomePage(
-            language: widget.language,
+          builder: (_) => HomePage(
+            language: languageCode,
           ),
         ),
       );
@@ -184,41 +255,61 @@ class _LoginPageState extends State<LoginPage> {
 
       String message;
 
-      if (e.code == 'user-not-found') {
-        message = widget.language == 0
-            ? "या ईमेलसाठी खाते सापडले नाही"
-            : widget.language == 1
-                ? "इस ईमेल के लिए कोई खाता नहीं मिला"
-                : "No account found with this email";
-      } else if (e.code == 'wrong-password' ||
-          e.code == 'invalid-credential') {
-        message = widget.language == 0
-            ? "ईमेल किंवा पासवर्ड चुकीचा आहे"
-            : widget.language == 1
-                ? "ईमेल या पासवर्ड गलत है"
-                : "Invalid email or password";
-      } else if (e.code == 'invalid-email') {
-        message = invalidEmailError;
-      } else if (e.code == 'user-disabled') {
-        message = widget.language == 0
-            ? "हे खाते बंद केले आहे"
-            : widget.language == 1
-                ? "यह खाता बंद कर दिया गया है"
-                : "This account has been disabled";
-      } else {
-        message = widget.language == 0
-            ? "लॉगिन करण्यात समस्या आली"
-            : widget.language == 1
-                ? "लॉगिन में समस्या हुई"
-                : "Login failed";
+      switch (e.code) {
+        case 'user-not-found':
+          message = tr(
+            'No account found with this email',
+            'या ईमेलसाठी खाते सापडले नाही',
+            'इस ईमेल के लिए कोई खाता नहीं मिला',
+          );
+          break;
+
+        case 'wrong-password':
+        case 'invalid-credential':
+          message = tr(
+            'Invalid email or password',
+            'ईमेल किंवा पासवर्ड चुकीचा आहे',
+            'ईमेल या पासवर्ड गलत है',
+          );
+          break;
+
+        case 'invalid-email':
+          message = invalidEmail;
+          break;
+
+        case 'user-disabled':
+          message = tr(
+            'This account has been disabled',
+            'हे खाते बंद केले आहे',
+            'यह खाता बंद कर दिया गया है',
+          );
+          break;
+
+        case 'too-many-requests':
+          message = tr(
+            'Too many attempts. Please try again later.',
+            'खूप प्रयत्न झाले. कृपया नंतर पुन्हा प्रयत्न करा.',
+            'बहुत अधिक प्रयास हुए। कृपया बाद में पुनः प्रयास करें।',
+          );
+          break;
+
+        case 'network-request-failed':
+          message = tr(
+            'Please check your internet connection',
+            'कृपया इंटरनेट कनेक्शन तपासा',
+            'कृपया अपना इंटरनेट कनेक्शन जांचें',
+          );
+          break;
+
+        default:
+          message = tr(
+            'Login failed. Please try again.',
+            'लॉगिन करण्यात समस्या आली. पुन्हा प्रयत्न करा.',
+            'लॉगिन में समस्या हुई। कृपया पुनः प्रयास करें।',
+          );
       }
 
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(message),
-          backgroundColor: Colors.red,
-        ),
-      );
+      showMessage(message);
     } catch (e) {
       if (!mounted) return;
 
@@ -226,18 +317,408 @@ class _LoginPageState extends State<LoginPage> {
         isLoading = false;
       });
 
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(
-            widget.language == 0
-                ? "काहीतरी चूक झाली"
-                : widget.language == 1
-                    ? "कुछ गलत हो गया"
-                    : "Something went wrong",
-          ),
-          backgroundColor: Colors.red,
+      showMessage(
+        tr(
+          'Something went wrong',
+          'काहीतरी चुकीचे झाले',
+          'कुछ गलत हो गया',
         ),
       );
+    }
+  }
+
+  // ============================================================
+  // CREATE ACCOUNT
+  // ============================================================
+
+  Future<void> createNewAccount() async {
+    final TextEditingController email =
+        TextEditingController();
+
+    final TextEditingController password =
+        TextEditingController();
+
+    bool dialogPasswordVisible = false;
+    bool creatingAccount = false;
+
+    try {
+      await showDialog(
+        context: context,
+        barrierDismissible: false,
+        builder: (dialogContext) {
+          return StatefulBuilder(
+            builder: (
+              dialogContext,
+              setDialogState,
+            ) {
+              return AlertDialog(
+                backgroundColor: Colors.white,
+                shape: RoundedRectangleBorder(
+                  borderRadius:
+                      BorderRadius.circular(26),
+                ),
+
+                // ==================================================
+                // TITLE
+                // ==================================================
+
+                title: Row(
+                  children: [
+                    Container(
+                      width: 42,
+                      height: 42,
+                      decoration: BoxDecoration(
+                        gradient:
+                            const LinearGradient(
+                          colors: [
+                            Color(0xFF087DC1),
+                            Color(0xFF20C7D2),
+                          ],
+                        ),
+                        borderRadius:
+                            BorderRadius.circular(13),
+                      ),
+                      child: const Icon(
+                        Icons.person_add_alt_1_rounded,
+                        color: Colors.white,
+                      ),
+                    ),
+
+                    const SizedBox(width: 12),
+
+                    Expanded(
+                      child: Text(
+                        createAccountText,
+                        style: const TextStyle(
+                          color: Color(0xFF124A78),
+                          fontWeight: FontWeight.w800,
+                          fontSize: 19,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+
+                // ==================================================
+                // CONTENT
+                // ==================================================
+
+                content: SingleChildScrollView(
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      const SizedBox(height: 8),
+
+                      // EMAIL
+                      TextField(
+                        controller: email,
+                        keyboardType:
+                            TextInputType.emailAddress,
+                        decoration:
+                            InputDecoration(
+                          hintText: emailHint,
+                          prefixIcon:
+                              const Icon(
+                            Icons.email_outlined,
+                            color:
+                                Color(0xFF159ED2),
+                          ),
+                          filled: true,
+                          fillColor:
+                              const Color(0xFFF1F9FC),
+                          border:
+                              OutlineInputBorder(
+                            borderRadius:
+                                BorderRadius.circular(
+                              15,
+                            ),
+                            borderSide:
+                                BorderSide.none,
+                          ),
+                        ),
+                      ),
+
+                      const SizedBox(height: 15),
+
+                      // PASSWORD
+                      TextField(
+                        controller: password,
+                        obscureText:
+                            !dialogPasswordVisible,
+                        decoration:
+                            InputDecoration(
+                          hintText: tr(
+                            'Create password',
+                            'पासवर्ड तयार करा',
+                            'पासवर्ड बनाएं',
+                          ),
+                          prefixIcon:
+                              const Icon(
+                            Icons.lock_outline,
+                            color:
+                                Color(0xFF159ED2),
+                          ),
+                          suffixIcon:
+                              IconButton(
+                            onPressed: () {
+                              setDialogState(() {
+                                dialogPasswordVisible =
+                                    !dialogPasswordVisible;
+                              });
+                            },
+                            icon: Icon(
+                              dialogPasswordVisible
+                                  ? Icons
+                                      .visibility_outlined
+                                  : Icons
+                                      .visibility_off_outlined,
+                              color:
+                                  const Color(0xFF159ED2),
+                            ),
+                          ),
+                          filled: true,
+                          fillColor:
+                              const Color(0xFFF1F9FC),
+                          border:
+                              OutlineInputBorder(
+                            borderRadius:
+                                BorderRadius.circular(
+                              15,
+                            ),
+                            borderSide:
+                                BorderSide.none,
+                          ),
+                        ),
+                      ),
+
+                      const SizedBox(height: 8),
+
+                      Align(
+                        alignment:
+                            Alignment.centerLeft,
+                        child: Text(
+                          passwordLength,
+                          style: const TextStyle(
+                            fontSize: 11,
+                            color: Colors.grey,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+
+                // ==================================================
+                // ACTIONS
+                // ==================================================
+
+                actions: [
+                  TextButton(
+                    onPressed: creatingAccount
+                        ? null
+                        : () {
+                            Navigator.pop(
+                              dialogContext,
+                            );
+                          },
+                    child: Text(
+                      tr(
+                        'Cancel',
+                        'रद्द करा',
+                        'रद्द करें',
+                      ),
+                    ),
+                  ),
+
+                  ElevatedButton(
+                    onPressed: creatingAccount
+                        ? null
+                        : () async {
+                            final emailText =
+                                email.text.trim();
+
+                            final passwordText =
+                                password.text.trim();
+
+                            // ------------------------------
+                            // VALIDATION
+                            // ------------------------------
+
+                            if (emailText.isEmpty) {
+                              showMessage(
+                                emailRequired,
+                              );
+                              return;
+                            }
+
+                            if (!RegExp(
+                              r'^[^@\s]+@[^@\s]+\.[^@\s]+$',
+                            ).hasMatch(
+                              emailText,
+                            )) {
+                              showMessage(
+                                invalidEmail,
+                              );
+                              return;
+                            }
+
+                            if (passwordText.length <
+                                6) {
+                              showMessage(
+                                passwordLength,
+                              );
+                              return;
+                            }
+
+                            setDialogState(() {
+                              creatingAccount = true;
+                            });
+
+                            try {
+                              // ----------------------------
+                              // FIREBASE CREATE ACCOUNT
+                              // ----------------------------
+
+                              await FirebaseAuth
+                                  .instance
+                                  .createUserWithEmailAndPassword(
+                                email: emailText,
+                                password:
+                                    passwordText,
+                              );
+
+                              if (!mounted) return;
+
+                              Navigator.pop(
+                                dialogContext,
+                              );
+
+                              showMessage(
+                                tr(
+                                  'Account created successfully',
+                                  'खाते यशस्वीपणे तयार झाले',
+                                  'खाता सफलतापूर्वक बनाया गया',
+                                ),
+                                success: true,
+                              );
+
+                              await Future.delayed(
+                                const Duration(
+                                  milliseconds: 500,
+                                ),
+                              );
+
+                              if (!mounted) return;
+
+                              // Firebase automatically
+                              // signs in the new user.
+
+                              Navigator.pushReplacement(
+                                context,
+                                MaterialPageRoute(
+                                  builder: (_) =>
+                                      HomePage(
+                                    language:
+                                        languageCode,
+                                  ),
+                                ),
+                              );
+                            } on FirebaseAuthException catch (e) {
+                              if (!mounted) return;
+
+                              setDialogState(() {
+                                creatingAccount =
+                                    false;
+                              });
+
+                              String message;
+
+                              switch (e.code) {
+                                case 'email-already-in-use':
+                                  message = tr(
+                                    'An account already exists with this email',
+                                    'या ईमेलवर खाते आधीच आहे',
+                                    'इस ईमेल से खाता पहले से मौजूद है',
+                                  );
+                                  break;
+
+                                case 'invalid-email':
+                                  message =
+                                      invalidEmail;
+                                  break;
+
+                                case 'weak-password':
+                                  message = tr(
+                                    'Password is too weak',
+                                    'पासवर्ड खूप कमजोर आहे',
+                                    'पासवर्ड बहुत कमजोर है',
+                                  );
+                                  break;
+
+                                case 'network-request-failed':
+                                  message = tr(
+                                    'Please check your internet connection',
+                                    'कृपया इंटरनेट कनेक्शन तपासा',
+                                    'कृपया अपना इंटरनेट कनेक्शन जांचें',
+                                  );
+                                  break;
+
+                                default:
+                                  message = tr(
+                                    'Could not create account',
+                                    'खाते तयार करता आले नाही',
+                                    'खाता नहीं बनाया जा सका',
+                                  );
+                              }
+
+                              showMessage(
+                                message,
+                              );
+                            }
+                          },
+                    style:
+                        ElevatedButton.styleFrom(
+                      backgroundColor:
+                          const Color(0xFF159ED2),
+                      foregroundColor:
+                          Colors.white,
+                      shape:
+                          RoundedRectangleBorder(
+                        borderRadius:
+                            BorderRadius.circular(12),
+                      ),
+                    ),
+                    child: creatingAccount
+                        ? const SizedBox(
+                            width: 20,
+                            height: 20,
+                            child:
+                                CircularProgressIndicator(
+                              strokeWidth: 2,
+                              valueColor:
+                                  AlwaysStoppedAnimation<
+                                      Color>(
+                                Colors.white,
+                              ),
+                            ),
+                          )
+                        : Text(
+                            tr(
+                              'Create Account',
+                              'खाते तयार करा',
+                              'खाता बनाएं',
+                            ),
+                          ),
+                  ),
+                ],
+              );
+            },
+          );
+        },
+      );
+    } finally {
+      email.dispose();
+      password.dispose();
     }
   }
 
@@ -246,161 +727,202 @@ class _LoginPageState extends State<LoginPage> {
   // ============================================================
 
   Future<void> forgotPassword() async {
-    final email = TextEditingController();
+    final TextEditingController email =
+        TextEditingController();
 
-    final String title = widget.language == 0
-        ? "पासवर्ड विसरलात?"
-        : widget.language == 1
-            ? "पासवर्ड भूल गए?"
-            : "Forgot Password?";
+    bool sending = false;
 
-    final String hint = widget.language == 0
-        ? "तुमचा ईमेल टाका"
-        : widget.language == 1
-            ? "अपना ईमेल दर्ज करें"
-            : "Enter your email";
+    try {
+      await showDialog(
+        context: context,
+        builder: (dialogContext) {
+          return StatefulBuilder(
+            builder: (
+              dialogContext,
+              setDialogState,
+            ) {
+              return AlertDialog(
+                backgroundColor: Colors.white,
+                shape: RoundedRectangleBorder(
+                  borderRadius:
+                      BorderRadius.circular(25),
+                ),
 
-    final String cancel = widget.language == 0
-        ? "रद्द करा"
-        : widget.language == 1
-            ? "रद्द करें"
-            : "Cancel";
+                title: Text(
+                  tr(
+                    'Forgot Password?',
+                    'पासवर्ड विसरलात?',
+                    'पासवर्ड भूल गए?',
+                  ),
+                  style: const TextStyle(
+                    color: Color(0xFF124A78),
+                    fontWeight: FontWeight.w800,
+                  ),
+                ),
 
-    final String submit = widget.language == 0
-        ? "पाठवा"
-        : widget.language == 1
-            ? "भेजें"
-            : "Send";
+                content: TextField(
+                  controller: email,
+                  keyboardType:
+                      TextInputType.emailAddress,
+                  decoration: InputDecoration(
+                    hintText: emailHint,
+                    prefixIcon: const Icon(
+                      Icons.email_outlined,
+                      color: Color(0xFF159ED2),
+                    ),
+                    filled: true,
+                    fillColor:
+                        const Color(0xFFF1F9FC),
+                    border: OutlineInputBorder(
+                      borderRadius:
+                          BorderRadius.circular(15),
+                      borderSide: BorderSide.none,
+                    ),
+                  ),
+                ),
 
-    await showDialog(
-      context: context,
-      builder: (dialogContext) {
-        return AlertDialog(
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(25),
-          ),
-          title: Text(
-            title,
-            style: const TextStyle(
-              color: Color(0xFF124A78),
-              fontWeight: FontWeight.w800,
-            ),
-          ),
-          content: TextField(
-            controller: email,
-            keyboardType: TextInputType.emailAddress,
-            decoration: InputDecoration(
-              hintText: hint,
-              prefixIcon: const Icon(
-                Icons.email_outlined,
-                color: Color(0xFF159ED2),
-              ),
-              filled: true,
-              fillColor: const Color(0xFFF1F9FC),
-              border: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(15),
-                borderSide: BorderSide.none,
-              ),
-            ),
-          ),
-          actions: [
-            TextButton(
-              onPressed: () {
-                email.dispose();
-                Navigator.pop(dialogContext);
-              },
-              child: Text(cancel),
-            ),
-            ElevatedButton(
-              onPressed: () async {
-                if (email.text.trim().isEmpty) {
-                  return;
-                }
-
-                try {
-                  await FirebaseAuth.instance
-                      .sendPasswordResetEmail(
-                    email: email.text.trim(),
-                  );
-
-                  if (!mounted) return;
-
-                  email.dispose();
-                  Navigator.pop(dialogContext);
-
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    SnackBar(
-                      content: Text(
-                        widget.language == 0
-                            ? "पासवर्ड रीसेट ईमेल पाठवला"
-                            : widget.language == 1
-                                ? "पासवर्ड रीसेट ईमेल भेजा गया"
-                                : "Password reset email sent",
+                actions: [
+                  TextButton(
+                    onPressed: sending
+                        ? null
+                        : () {
+                            Navigator.pop(
+                              dialogContext,
+                            );
+                          },
+                    child: Text(
+                      tr(
+                        'Cancel',
+                        'रद्द करा',
+                        'रद्द करें',
                       ),
-                      backgroundColor: Colors.green,
                     ),
-                  );
-                } on FirebaseAuthException catch (e) {
-                  email.dispose();
+                  ),
 
-                  if (Navigator.canPop(dialogContext)) {
-                    Navigator.pop(dialogContext);
-                  }
+                  ElevatedButton(
+                    onPressed: sending
+                        ? null
+                        : () async {
+                            final emailText =
+                                email.text.trim();
 
-                  if (!mounted) return;
+                            if (emailText.isEmpty) {
+                              showMessage(
+                                emailRequired,
+                              );
+                              return;
+                            }
 
-                  String message;
+                            if (!RegExp(
+                              r'^[^@\s]+@[^@\s]+\.[^@\s]+$',
+                            ).hasMatch(
+                              emailText,
+                            )) {
+                              showMessage(
+                                invalidEmail,
+                              );
+                              return;
+                            }
 
-                  if (e.code == 'user-not-found') {
-                    message = widget.language == 0
-                        ? "हे ईमेल खाते सापडले नाही"
-                        : widget.language == 1
-                            ? "यह ईमेल खाता नहीं मिला"
-                            : "No account found with this email";
-                  } else {
-                    message = widget.language == 0
-                        ? "पासवर्ड रीसेट करता आले नाही"
-                        : widget.language == 1
-                            ? "पासवर्ड रीसेट नहीं हो सका"
-                            : "Could not reset password";
-                  }
+                            setDialogState(() {
+                              sending = true;
+                            });
 
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    SnackBar(
-                      content: Text(message),
-                      backgroundColor: Colors.red,
+                            try {
+                              await FirebaseAuth
+                                  .instance
+                                  .sendPasswordResetEmail(
+                                email: emailText,
+                              );
+
+                              if (!mounted) return;
+
+                              Navigator.pop(
+                                dialogContext,
+                              );
+
+                              showMessage(
+                                tr(
+                                  'Password reset email sent',
+                                  'पासवर्ड रीसेट ईमेल पाठवला',
+                                  'पासवर्ड रीसेट ईमेल भेजा गया',
+                                ),
+                                success: true,
+                              );
+                            } on FirebaseAuthException catch (e) {
+                              if (!mounted) return;
+
+                              setDialogState(() {
+                                sending = false;
+                              });
+
+                              String message;
+
+                              switch (e.code) {
+                                case 'user-not-found':
+                                  message = tr(
+                                    'No account found with this email',
+                                    'या ईमेलसाठी खाते सापडले नाही',
+                                    'इस ईमेल के लिए कोई खाता नहीं मिला',
+                                  );
+                                  break;
+
+                                case 'invalid-email':
+                                  message =
+                                      invalidEmail;
+                                  break;
+
+                                default:
+                                  message = tr(
+                                    'Could not send password reset email',
+                                    'पासवर्ड रीसेट ईमेल पाठवता आले नाही',
+                                    'पासवर्ड रीसेट ईमेल नहीं भेजा जा सका',
+                                  );
+                              }
+
+                              showMessage(
+                                message,
+                              );
+                            }
+                          },
+                    style:
+                        ElevatedButton.styleFrom(
+                      backgroundColor:
+                          const Color(0xFF159ED2),
+                      foregroundColor:
+                          Colors.white,
                     ),
-                  );
-                }
-              },
-              style: ElevatedButton.styleFrom(
-                backgroundColor: const Color(0xFF159ED2),
-                foregroundColor: Colors.white,
-              ),
-              child: Text(submit),
-            ),
-          ],
-        );
-      },
-    );
-  }
-
-  // ============================================================
-  // CREATE ACCOUNT
-  // ============================================================
-
-  void createNewAccount() {
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text(
-          widget.language == 0
-              ? "नवीन खाते तयार करण्याचे पेज लवकरच येईल"
-              : widget.language == 1
-                  ? "नया खाता बनाने का पेज जल्द आएगा"
-                  : "Create New Account page coming soon",
-        ),
-      ),
-    );
+                    child: sending
+                        ? const SizedBox(
+                            width: 20,
+                            height: 20,
+                            child:
+                                CircularProgressIndicator(
+                              strokeWidth: 2,
+                              valueColor:
+                                  AlwaysStoppedAnimation<
+                                      Color>(
+                                Colors.white,
+                              ),
+                            ),
+                          )
+                        : Text(
+                            tr(
+                              'Send',
+                              'पाठवा',
+                              'भेजें',
+                            ),
+                          ),
+                  ),
+                ],
+              );
+            },
+          );
+        },
+      );
+    } finally {
+      email.dispose();
+    }
   }
 
   // ============================================================
@@ -429,7 +951,8 @@ class _LoginPageState extends State<LoginPage> {
           // ======================================================
 
           Container(
-            decoration: const BoxDecoration(
+            decoration:
+                const BoxDecoration(
               gradient: LinearGradient(
                 begin: Alignment.topLeft,
                 end: Alignment.bottomRight,
@@ -443,7 +966,7 @@ class _LoginPageState extends State<LoginPage> {
           ),
 
           // ======================================================
-          // DECORATIVE CIRCLES
+          // DECORATIVE CIRCLE 1
           // ======================================================
 
           Positioned(
@@ -454,10 +977,15 @@ class _LoginPageState extends State<LoginPage> {
               height: 280,
               decoration: BoxDecoration(
                 shape: BoxShape.circle,
-                color: Colors.white.withOpacity(0.08),
+                color:
+                    Colors.white.withOpacity(0.08),
               ),
             ),
           ),
+
+          // ======================================================
+          // DECORATIVE CIRCLE 2
+          // ======================================================
 
           Positioned(
             bottom: -100,
@@ -467,13 +995,14 @@ class _LoginPageState extends State<LoginPage> {
               height: 300,
               decoration: BoxDecoration(
                 shape: BoxShape.circle,
-                color: Colors.white.withOpacity(0.07),
+                color:
+                    Colors.white.withOpacity(0.07),
               ),
             ),
           ),
 
           // ======================================================
-          // WAVE ICON
+          // WAVE
           // ======================================================
 
           Positioned(
@@ -482,326 +1011,453 @@ class _LoginPageState extends State<LoginPage> {
             child: Icon(
               Icons.waves_rounded,
               size: 70,
-              color: Colors.white.withOpacity(0.15),
+              color:
+                  Colors.white.withOpacity(0.15),
             ),
           ),
 
           // ======================================================
-          // MAIN
+          // MAIN CONTENT
           // ======================================================
 
           SafeArea(
             child: Center(
               child: SingleChildScrollView(
-                physics: const BouncingScrollPhysics(),
-                padding: const EdgeInsets.symmetric(
+                physics:
+                    const BouncingScrollPhysics(),
+                padding:
+                    const EdgeInsets.symmetric(
                   horizontal: 18,
                   vertical: 25,
                 ),
                 child: ClipRRect(
-                  borderRadius: BorderRadius.circular(34),
+                  borderRadius:
+                      BorderRadius.circular(34),
                   child: BackdropFilter(
                     filter: ImageFilter.blur(
                       sigmaX: 12,
                       sigmaY: 12,
                     ),
                     child: Container(
-                      constraints: const BoxConstraints(
+                      constraints:
+                          const BoxConstraints(
                         maxWidth: 520,
                       ),
-                      padding: const EdgeInsets.fromLTRB(
+                      padding:
+                          const EdgeInsets.fromLTRB(
                         28,
                         28,
                         28,
                         25,
                       ),
-                      decoration: BoxDecoration(
-                        color: Colors.white.withOpacity(0.94),
-                        borderRadius: BorderRadius.circular(34),
+                      decoration:
+                          BoxDecoration(
+                        color: Colors.white
+                            .withOpacity(0.94),
+                        borderRadius:
+                            BorderRadius.circular(34),
                         border: Border.all(
-                          color: Colors.white.withOpacity(0.8),
+                          color: Colors.white
+                              .withOpacity(0.8),
                           width: 1.5,
                         ),
                         boxShadow: [
                           BoxShadow(
-                            color: Colors.black.withOpacity(0.22),
+                            color: Colors.black
+                                .withOpacity(0.22),
                             blurRadius: 35,
-                            offset: const Offset(0, 18),
+                            offset:
+                                const Offset(0, 18),
                           ),
                         ],
                       ),
+
+                      // ==================================================
+                      // FORM
+                      // ==================================================
+
                       child: Form(
                         key: _formKey,
                         child: Column(
                           children: [
-                            // ==================================================
+                            // ============================================
                             // LOGO
-                            // ==================================================
+                            // ============================================
 
                             Container(
                               width: 88,
                               height: 88,
-                              decoration: BoxDecoration(
-                                gradient: const LinearGradient(
-                                  begin: Alignment.topLeft,
-                                  end: Alignment.bottomRight,
+                              decoration:
+                                  BoxDecoration(
+                                gradient:
+                                    const LinearGradient(
+                                  begin:
+                                      Alignment.topLeft,
+                                  end: Alignment
+                                      .bottomRight,
                                   colors: [
-                                    Color(0xFF087DC1),
-                                    Color(0xFF20C7D2),
+                                    Color(
+                                        0xFF087DC1),
+                                    Color(
+                                        0xFF20C7D2),
                                   ],
                                 ),
                                 borderRadius:
-                                    BorderRadius.circular(27),
-                                boxShadow: [
-                                  BoxShadow(
-                                    color: const Color(0xFF159ED2)
-                                        .withOpacity(0.35),
-                                    blurRadius: 18,
-                                    offset: const Offset(0, 8),
-                                  ),
-                                ],
+                                    BorderRadius
+                                        .circular(27),
                               ),
                               child: const Column(
                                 mainAxisAlignment:
-                                    MainAxisAlignment.center,
+                                    MainAxisAlignment
+                                        .center,
                                 children: [
                                   Icon(
-                                    Icons.castle_rounded,
-                                    color: Colors.white,
+                                    Icons
+                                        .castle_rounded,
+                                    color:
+                                        Colors.white,
                                     size: 38,
                                   ),
                                   Icon(
-                                    Icons.waves_rounded,
-                                    color: Colors.white,
+                                    Icons
+                                        .waves_rounded,
+                                    color:
+                                        Colors.white,
                                     size: 21,
                                   ),
                                 ],
                               ),
                             ),
 
-                            const SizedBox(height: 14),
+                            const SizedBox(
+                              height: 14,
+                            ),
 
-                            // ==================================================
+                            // ============================================
                             // APP NAME
-                            // ==================================================
+                            // ============================================
 
                             RichText(
-                              text: const TextSpan(
+                              text:
+                                  const TextSpan(
                                 children: [
                                   TextSpan(
-                                    text: "Sindhudurg",
-                                    style: TextStyle(
-                                      color: Color(0xFF124A78),
+                                    text:
+                                        'Sindhudurg',
+                                    style:
+                                        TextStyle(
+                                      color: Color(
+                                          0xFF124A78),
                                       fontSize: 26,
-                                      fontWeight: FontWeight.w900,
+                                      fontWeight:
+                                          FontWeight
+                                              .w900,
                                     ),
                                   ),
                                   TextSpan(
-                                    text: "Nagri",
-                                    style: TextStyle(
-                                      color: Color(0xFF12A8CF),
+                                    text: 'Nagri',
+                                    style:
+                                        TextStyle(
+                                      color: Color(
+                                          0xFF12A8CF),
                                       fontSize: 26,
-                                      fontWeight: FontWeight.w900,
+                                      fontWeight:
+                                          FontWeight
+                                              .w900,
                                     ),
                                   ),
                                 ],
                               ),
                             ),
 
-                            const SizedBox(height: 5),
+                            const SizedBox(
+                              height: 5,
+                            ),
 
                             Text(
-                              widget.language == 0
-                                  ? "अन्वेषण • शोध • अनुभव"
-                                  : widget.language == 1
-                                      ? "अन्वेषण • खोज • अनुभव"
-                                      : "Explore • Discover • Experience",
-                              style: const TextStyle(
-                                color: Color(0xFF669DB4),
+                              tr(
+                                'Explore • Discover • Experience',
+                                'अन्वेषण • शोध • अनुभव',
+                                'अन्वेषण • खोज • अनुभव',
+                              ),
+                              style:
+                                  const TextStyle(
+                                color:
+                                    Color(0xFF669DB4),
                                 fontSize: 12,
-                                fontWeight: FontWeight.w600,
+                                fontWeight:
+                                    FontWeight.w600,
                                 letterSpacing: 0.8,
                               ),
                             ),
 
-                            const SizedBox(height: 25),
+                            const SizedBox(
+                              height: 25,
+                            ),
 
-                            // ==================================================
+                            // ============================================
                             // PERSON ICON
-                            // ==================================================
+                            // ============================================
 
                             Container(
                               width: 68,
                               height: 68,
-                              decoration: BoxDecoration(
-                                shape: BoxShape.circle,
-                                color: const Color(0xFFE0F5FB),
-                                border: Border.all(
-                                  color: const Color(0xFFBFE9F4),
+                              decoration:
+                                  BoxDecoration(
+                                shape:
+                                    BoxShape.circle,
+                                color:
+                                    const Color(
+                                  0xFFE0F5FB,
+                                ),
+                                border:
+                                    Border.all(
+                                  color:
+                                      const Color(
+                                    0xFFBFE9F4,
+                                  ),
                                 ),
                               ),
                               child: const Icon(
-                                Icons.person_rounded,
-                                color: Color(0xFF159ED2),
+                                Icons
+                                    .person_rounded,
+                                color:
+                                    Color(0xFF159ED2),
                                 size: 38,
                               ),
                             ),
 
-                            const SizedBox(height: 15),
+                            const SizedBox(
+                              height: 15,
+                            ),
 
-                            // ==================================================
+                            // ============================================
                             // WELCOME
-                            // ==================================================
+                            // ============================================
 
                             Text(
                               welcome,
-                              textAlign: TextAlign.center,
-                              style: const TextStyle(
-                                color: Color(0xFF124A78),
+                              textAlign:
+                                  TextAlign.center,
+                              style:
+                                  const TextStyle(
+                                color:
+                                    Color(0xFF124A78),
                                 fontSize: 30,
-                                fontWeight: FontWeight.w900,
+                                fontWeight:
+                                    FontWeight.w900,
                               ),
                             ),
 
-                            const SizedBox(height: 7),
+                            const SizedBox(
+                              height: 7,
+                            ),
 
                             Text(
                               subtitle,
-                              textAlign: TextAlign.center,
-                              style: const TextStyle(
-                                color: Color(0xFF7798A6),
+                              textAlign:
+                                  TextAlign.center,
+                              style:
+                                  const TextStyle(
+                                color:
+                                    Color(0xFF7798A6),
                                 fontSize: 13.5,
                                 height: 1.5,
                               ),
                             ),
 
-                            const SizedBox(height: 28),
+                            const SizedBox(
+                              height: 28,
+                            ),
 
-                            // ==================================================
+                            // ============================================
                             // EMAIL LABEL
-                            // ==================================================
+                            // ============================================
 
                             Align(
-                              alignment: Alignment.centerLeft,
+                              alignment:
+                                  Alignment.centerLeft,
                               child: Text(
                                 emailLabel,
-                                style: const TextStyle(
-                                  color: Color(0xFF174A8B),
+                                style:
+                                    const TextStyle(
+                                  color: Color(
+                                      0xFF174A8B),
                                   fontSize: 15,
-                                  fontWeight: FontWeight.w800,
+                                  fontWeight:
+                                      FontWeight.w800,
                                 ),
                               ),
                             ),
 
-                            const SizedBox(height: 9),
+                            const SizedBox(
+                              height: 9,
+                            ),
 
-                            // ==================================================
+                            // ============================================
                             // EMAIL FIELD
-                            // ==================================================
+                            // ============================================
 
                             TextFormField(
-                              controller: emailController,
+                              controller:
+                                  emailController,
                               keyboardType:
-                                  TextInputType.emailAddress,
-                              validator: (value) {
-                                if (value == null ||
-                                    value.trim().isEmpty) {
-                                  return emailError;
+                                  TextInputType
+                                      .emailAddress,
+                              textInputAction:
+                                  TextInputAction
+                                      .next,
+                              validator:
+                                  (value) {
+                                if (value ==
+                                        null ||
+                                    value
+                                        .trim()
+                                        .isEmpty) {
+                                  return emailRequired;
                                 }
 
-                                if (!value.contains('@')) {
-                                  return invalidEmailError;
+                                if (!RegExp(
+                                  r'^[^@\s]+@[^@\s]+\.[^@\s]+$',
+                                ).hasMatch(
+                                  value.trim(),
+                                )) {
+                                  return invalidEmail;
                                 }
 
                                 return null;
                               },
-                              decoration: InputDecoration(
-                                hintText: emailHint,
-                                prefixIcon: const Icon(
-                                  Icons.person_outline_rounded,
-                                  color: Color(0xFF20A9D3),
+                              decoration:
+                                  InputDecoration(
+                                hintText:
+                                    emailHint,
+                                prefixIcon:
+                                    const Icon(
+                                  Icons
+                                      .email_outlined,
+                                  color: Color(
+                                      0xFF20A9D3),
                                 ),
                                 filled: true,
                                 fillColor:
-                                    const Color(0xFFF8FCFE),
+                                    const Color(
+                                        0xFFF8FCFE),
                                 contentPadding:
-                                    const EdgeInsets.symmetric(
+                                    const EdgeInsets
+                                        .symmetric(
                                   vertical: 18,
                                   horizontal: 15,
                                 ),
-                                border: OutlineInputBorder(
+                                border:
+                                    OutlineInputBorder(
                                   borderRadius:
-                                      BorderRadius.circular(18),
-                                  borderSide: const BorderSide(
-                                    color: Color(0xFFD5E4EA),
+                                      BorderRadius
+                                          .circular(18),
+                                  borderSide:
+                                      const BorderSide(
+                                    color: Color(
+                                        0xFFD5E4EA),
                                   ),
                                 ),
                                 enabledBorder:
                                     OutlineInputBorder(
                                   borderRadius:
-                                      BorderRadius.circular(18),
-                                  borderSide: const BorderSide(
-                                    color: Color(0xFFD5E4EA),
+                                      BorderRadius
+                                          .circular(18),
+                                  borderSide:
+                                      const BorderSide(
+                                    color: Color(
+                                        0xFFD5E4EA),
                                   ),
                                 ),
                                 focusedBorder:
                                     OutlineInputBorder(
                                   borderRadius:
-                                      BorderRadius.circular(18),
-                                  borderSide: const BorderSide(
-                                    color: Color(0xFF20A9D3),
-                                    width: 2,
+                                      BorderRadius
+                                          .circular(18),
+                                  borderSide:
+                                      const BorderSide(
+                                    color: Color(
+                                        0xFF20A9D3),
+                                    width: 1.5,
                                   ),
                                 ),
                               ),
                             ),
 
-                            const SizedBox(height: 20),
+                            const SizedBox(
+                              height: 20,
+                            ),
 
-                            // ==================================================
+                            // ============================================
                             // PASSWORD LABEL
-                            // ==================================================
+                            // ============================================
 
                             Align(
-                              alignment: Alignment.centerLeft,
+                              alignment:
+                                  Alignment.centerLeft,
                               child: Text(
                                 passwordLabel,
-                                style: const TextStyle(
-                                  color: Color(0xFF174A8B),
+                                style:
+                                    const TextStyle(
+                                  color: Color(
+                                      0xFF174A8B),
                                   fontSize: 15,
-                                  fontWeight: FontWeight.w800,
+                                  fontWeight:
+                                      FontWeight.w800,
                                 ),
                               ),
                             ),
 
-                            const SizedBox(height: 9),
+                            const SizedBox(
+                              height: 9,
+                            ),
 
-                            // ==================================================
+                            // ============================================
                             // PASSWORD FIELD
-                            // ==================================================
+                            // ============================================
 
                             TextFormField(
-                              controller: passwordController,
-                              obscureText: !passwordVisible,
-                              validator: (value) {
-                                if (value == null ||
+                              controller:
+                                  passwordController,
+                              obscureText:
+                                  !passwordVisible,
+                              textInputAction:
+                                  TextInputAction.done,
+                              onFieldSubmitted:
+                                  (_) {
+                                if (!isLoading) {
+                                  loginUser();
+                                }
+                              },
+                              validator:
+                                  (value) {
+                                if (value ==
+                                        null ||
                                     value.isEmpty) {
-                                  return passwordError;
+                                  return passwordRequired;
                                 }
 
-                                if (value.length < 6) {
-                                  return passwordLengthError;
+                                if (value.length <
+                                    6) {
+                                  return passwordLength;
                                 }
 
                                 return null;
                               },
-                              decoration: InputDecoration(
-                                hintText: passwordHint,
-                                prefixIcon: const Icon(
-                                  Icons.lock_outline_rounded,
-                                  color: Color(0xFF20A9D3),
+                              decoration:
+                                  InputDecoration(
+                                hintText:
+                                    passwordHint,
+                                prefixIcon:
+                                    const Icon(
+                                  Icons
+                                      .lock_outline_rounded,
+                                  color: Color(
+                                      0xFF20A9D3),
                                 ),
-                                suffixIcon: IconButton(
+                                suffixIcon:
+                                    IconButton(
                                   onPressed: () {
                                     setState(() {
                                       passwordVisible =
@@ -810,111 +1466,140 @@ class _LoginPageState extends State<LoginPage> {
                                   },
                                   icon: Icon(
                                     passwordVisible
-                                        ? Icons.visibility_outlined
-                                        : Icons.visibility_off_outlined,
-                                    color:
-                                        const Color(0xFF20A9D3),
+                                        ? Icons
+                                            .visibility_outlined
+                                        : Icons
+                                            .visibility_off_outlined,
+                                    color: const Color(
+                                        0xFF20A9D3),
                                   ),
                                 ),
                                 filled: true,
                                 fillColor:
-                                    const Color(0xFFF8FCFE),
+                                    const Color(
+                                        0xFFF8FCFE),
                                 contentPadding:
-                                    const EdgeInsets.symmetric(
+                                    const EdgeInsets
+                                        .symmetric(
                                   vertical: 18,
                                   horizontal: 15,
                                 ),
-                                border: OutlineInputBorder(
+                                border:
+                                    OutlineInputBorder(
                                   borderRadius:
-                                      BorderRadius.circular(18),
-                                  borderSide: const BorderSide(
-                                    color: Color(0xFFD5E4EA),
+                                      BorderRadius
+                                          .circular(18),
+                                  borderSide:
+                                      const BorderSide(
+                                    color: Color(
+                                        0xFFD5E4EA),
                                   ),
                                 ),
                                 enabledBorder:
                                     OutlineInputBorder(
                                   borderRadius:
-                                      BorderRadius.circular(18),
-                                  borderSide: const BorderSide(
-                                    color: Color(0xFFD5E4EA),
+                                      BorderRadius
+                                          .circular(18),
+                                  borderSide:
+                                      const BorderSide(
+                                    color: Color(
+                                        0xFFD5E4EA),
                                   ),
                                 ),
                                 focusedBorder:
                                     OutlineInputBorder(
                                   borderRadius:
-                                      BorderRadius.circular(18),
-                                  borderSide: const BorderSide(
-                                    color: Color(0xFF20A9D3),
-                                    width: 2,
+                                      BorderRadius
+                                          .circular(18),
+                                  borderSide:
+                                      const BorderSide(
+                                    color: Color(
+                                        0xFF20A9D3),
+                                    width: 1.5,
                                   ),
                                 ),
                               ),
                             ),
 
-                            // ==================================================
+                            // ============================================
                             // FORGOT PASSWORD
-                            // ==================================================
+                            // ============================================
 
                             Align(
-                              alignment: Alignment.centerRight,
+                              alignment:
+                                  Alignment.centerRight,
                               child: TextButton(
-                                onPressed: forgotPassword,
+                                onPressed:
+                                    isLoading
+                                        ? null
+                                        : forgotPassword,
                                 child: Text(
-                                  forgot,
-                                  style: const TextStyle(
-                                    color: Color(0xFF159ED2),
-                                    fontSize: 14,
-                                    fontWeight: FontWeight.w700,
+                                  forgotPasswordText,
+                                  style:
+                                      const TextStyle(
+                                    color: Color(
+                                        0xFF159ED2),
+                                    fontWeight:
+                                        FontWeight.w700,
                                   ),
                                 ),
                               ),
                             ),
 
-                            const SizedBox(height: 8),
+                            const SizedBox(
+                              height: 8,
+                            ),
 
-                            // ==================================================
+                            // ============================================
                             // LOGIN BUTTON
-                            // ==================================================
+                            // ============================================
 
                             Container(
-                              width: double.infinity,
+                              width:
+                                  double.infinity,
                               height: 58,
-                              decoration: BoxDecoration(
-                                gradient: const LinearGradient(
-                                  begin: Alignment.centerLeft,
-                                  end: Alignment.centerRight,
+                              decoration:
+                                  BoxDecoration(
+                                gradient:
+                                    const LinearGradient(
                                   colors: [
-                                    Color(0xFF087DC1),
-                                    Color(0xFF20C7D2),
+                                    Color(
+                                        0xFF087DC1),
+                                    Color(
+                                        0xFF20C7D2),
                                   ],
                                 ),
                                 borderRadius:
-                                    BorderRadius.circular(19),
-                                boxShadow: [
-                                  BoxShadow(
-                                    color: const Color(0xFF159ED2)
-                                        .withOpacity(0.32),
-                                    blurRadius: 16,
-                                    offset: const Offset(0, 8),
-                                  ),
-                                ],
+                                    BorderRadius
+                                        .circular(19),
                               ),
-                              child: ElevatedButton(
-                                onPressed:
-                                    isLoading ? null : loginUser,
-                                style: ElevatedButton.styleFrom(
+                              child:
+                                  ElevatedButton(
+                                onPressed: isLoading
+                                    ? null
+                                    : loginUser,
+                                style:
+                                    ElevatedButton
+                                        .styleFrom(
                                   backgroundColor:
-                                      Colors.transparent,
+                                      Colors
+                                          .transparent,
                                   disabledBackgroundColor:
-                                      Colors.transparent,
-                                  foregroundColor: Colors.white,
+                                      Colors
+                                          .transparent,
+                                  foregroundColor:
+                                      Colors.white,
                                   elevation: 0,
                                   shadowColor:
-                                      Colors.transparent,
+                                      Colors
+                                          .transparent,
                                   shape:
                                       RoundedRectangleBorder(
                                     borderRadius:
-                                        BorderRadius.circular(19),
+                                        BorderRadius
+                                            .circular(
+                                      19,
+                                    ),
                                   ),
                                 ),
                                 child: isLoading
@@ -923,28 +1608,35 @@ class _LoginPageState extends State<LoginPage> {
                                         height: 25,
                                         child:
                                             CircularProgressIndicator(
-                                          strokeWidth: 2.5,
+                                          strokeWidth:
+                                              2.5,
                                           valueColor:
                                               AlwaysStoppedAnimation<
                                                   Color>(
-                                            Colors.white,
+                                            Colors
+                                                .white,
                                           ),
                                         ),
                                       )
                                     : Row(
                                         mainAxisAlignment:
-                                            MainAxisAlignment.center,
+                                            MainAxisAlignment
+                                                .center,
                                         children: [
                                           Text(
-                                            login,
+                                            loginText,
                                             style:
                                                 const TextStyle(
-                                              fontSize: 17,
+                                              fontSize:
+                                                  17,
                                               fontWeight:
-                                                  FontWeight.w800,
+                                                  FontWeight
+                                                      .w800,
                                             ),
                                           ),
-                                          const SizedBox(width: 12),
+                                          const SizedBox(
+                                            width: 12,
+                                          ),
                                           const Icon(
                                             Icons
                                                 .arrow_forward_rounded,
@@ -955,11 +1647,13 @@ class _LoginPageState extends State<LoginPage> {
                               ),
                             ),
 
-                            const SizedBox(height: 23),
+                            const SizedBox(
+                              height: 23,
+                            ),
 
-                            // ==================================================
+                            // ============================================
                             // CREATE ACCOUNT
-                            // ==================================================
+                            // ============================================
 
                             Row(
                               children: [
@@ -967,53 +1661,70 @@ class _LoginPageState extends State<LoginPage> {
                                   child: Container(
                                     height: 1,
                                     color:
-                                        const Color(0xFFD0E5EC),
+                                        const Color(
+                                      0xFFD0E5EC,
+                                    ),
                                   ),
                                 ),
+
                                 Padding(
                                   padding:
-                                      const EdgeInsets.symmetric(
+                                      const EdgeInsets
+                                          .symmetric(
                                     horizontal: 10,
                                   ),
                                   child: TextButton(
-                                    onPressed: createNewAccount,
+                                    onPressed:
+                                        isLoading
+                                            ? null
+                                            : createNewAccount,
                                     child: Text(
-                                      createAccount,
-                                      style: const TextStyle(
-                                        color:
-                                            Color(0xFF159ED2),
+                                      createAccountText,
+                                      style:
+                                          const TextStyle(
+                                        color: Color(
+                                            0xFF159ED2),
                                         fontSize: 14.5,
                                         fontWeight:
-                                            FontWeight.w800,
+                                            FontWeight
+                                                .w800,
                                       ),
                                     ),
                                   ),
                                 ),
+
                                 Expanded(
                                   child: Container(
                                     height: 1,
                                     color:
-                                        const Color(0xFFD0E5EC),
+                                        const Color(
+                                      0xFFD0E5EC,
+                                    ),
                                   ),
                                 ),
                               ],
                             ),
 
-                            const SizedBox(height: 5),
+                            const SizedBox(
+                              height: 5,
+                            ),
 
-                            // ==================================================
+                            // ============================================
                             // FOOTER
-                            // ==================================================
+                            // ============================================
 
                             Text(
-                              widget.language == 0
-                                  ? "तुमचा सिंधुदुर्ग प्रवास येथे सुरू होतो"
-                                  : widget.language == 1
-                                      ? "आपकी सिंधुदुर्ग यात्रा यहाँ से शुरू होती है"
-                                      : "Your Sindhudurg journey starts here",
-                              textAlign: TextAlign.center,
-                              style: const TextStyle(
-                                color: Color(0xFF91AAB5),
+                              tr(
+                                'Your Sindhudurg journey starts here',
+                                'तुमचा सिंधुदुर्ग प्रवास येथे सुरू होतो',
+                                'आपकी सिंधुदुर्ग यात्रा यहाँ से शुरू होती है',
+                              ),
+                              textAlign:
+                                  TextAlign.center,
+                              style:
+                                  const TextStyle(
+                                color:
+                                    Color(0xFF91AAB5),
                                 fontSize: 11,
                               ),
                             ),
